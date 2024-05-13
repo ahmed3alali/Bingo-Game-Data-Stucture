@@ -1,0 +1,585 @@
+LinkedList:
+import java.util.LinkedList;
+
+public class Node {
+    String word;
+    int frequency;
+    LinkedList<FileFrequency> files;
+    Node left, right;
+
+    public Node(String word, String filename, int count) {
+        this.word = word;
+        this.frequency = 1;
+        this.files = new LinkedList<>();
+        this.files.add(new FileFrequency(filename, count));
+        this.left = this.right = null;
+    }
+}
+
+
+
+
+
+
+------
+
+import java.util.LinkedList;
+
+public class Node {
+    String word;
+    int frequency;
+    LinkedList<FileFrequency> files;
+    Node left, right;
+
+    public Node(String word, String filename, int count) {
+        this.word = word;
+        this.frequency = 1;
+        this.files = new LinkedList<>();
+        this.files.add(new FileFrequency(filename, count));
+        this.left = this.right = null;
+    }
+}
+
+---
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+public class HTMLWordCounter {
+
+    public static void processHTMLFilesGeneral(List<String> htmlFiles) {
+        Set<String> ignoreList = readIgnoreList("projectFile/ignoreList.txt");
+
+        Node root = null;
+
+        for (String file : htmlFiles) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] words = line.split("\\s+"); // Split line into words
+                    for (String word : words) {
+                        word = cleanWord(word);
+                        if (!ignoreList.contains(word) && !word.isEmpty()) {
+                            root = buildBSTV2Test(root, word, file); // building binary tree starts here.
+                        }
+                    }
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        printBSTTest(root);
+    }
+    
+    
+    /*
+     public static void processHTMLFilesPreOrder(List<String> htmlFiles) {
+        Set<String> ignoreList = readIgnoreList("projectFile/ignoreList.txt");
+
+        Node root = null;
+
+        for (String file : htmlFiles) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] words = line.split("\\s+"); // Split line into words
+                    for (String word : words) {
+                        word = cleanWord(word);
+                        if (!ignoreList.contains(word) && !word.isEmpty()) {
+                            root = treeBuilder(root, word, file);
+                        }
+                    }
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+         printPreOrder(root);
+    }
+    
+     
+         public static void processHTMLFilesInOrder(List<String> htmlFiles) {
+        Set<String> ignoreList = readIgnoreList("projectFile/ignoreList.txt");
+
+        Node root = null;
+
+        for (String file : htmlFiles) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] words = line.split("\\s+"); // Split line into words
+                    for (String word : words) {
+                        word = cleanWord(word);
+                        if (!ignoreList.contains(word) && !word.isEmpty()) {
+                            root = treeBuilder(root, word, file);
+                        }
+                    }
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+         printInOrder(root);
+    }
+         
+         
+         
+          public static void processHTMLFilesPostOrder(List<String> htmlFiles) {
+        Set<String> ignoreList = readIgnoreList("projectFile/ignoreList.txt");
+
+        Node root = null;
+
+        for (String file : htmlFiles) {
+            try {
+                BufferedReader reader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String[] words = line.split("\\s+"); // Split line into words
+                    for (String word : words) {
+                        word = cleanWord(word);
+                        if (!ignoreList.contains(word) && !word.isEmpty()) {
+                            root = treeBuilder(root, word, file);
+                        }
+                    }
+                }
+                reader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+         printPostOrder(root);
+    }
+     */
+     
+    
+    
+
+    private static Set<String> readIgnoreList(String filename) {
+        Set<String> ignoreList = new HashSet<>();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                ignoreList.add(line.trim());
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ignoreList;
+    }
+    
+    
+    /*
+// lastly we are here 
+    private static Node buildBST(Node root, String word, String filename) {
+        if (root == null) {
+            root = new Node(word, filename, 1);
+            return root;
+        }
+
+        int compare = word.compareTo(root.word);
+        if (compare < 0) {
+            root.left = buildBST(root.left, word, filename);
+        } else if (compare > 0) {
+            root.right = buildBST(root.right, word, filename);
+        } else {
+            boolean found = false;
+            for (FileFrequency ff : root.files) {
+                if (ff.filename.equals(filename)) {
+                    ff.count++;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) {
+                root.files.add(new FileFrequency(filename, 1));
+            }
+        }
+        return root;
+    }
+
+    
+    
+    private static Node treeBuilder(Node root, String word, String filename) {
+    if (root == null) {
+        root = new Node(word, filename, 1);
+        return root;
+    }
+
+    // Compare word with the current node's word based on the order in the file
+    int compare = compareWithFileOrder(word, root.word, filename);
+    if (compare < 0) {
+        root.left = buildBST(root.left, word, filename);
+    } else if (compare > 0) {
+        root.right = buildBST(root.right, word, filename);
+    } else {
+        boolean found = false;
+        for (FileFrequency ff : root.files) {
+            if (ff.filename.equals(filename)) {
+                ff.count++;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            root.files.add(new FileFrequency(filename, 1));
+        }
+    }
+    return root;
+}
+
+private static int compareWithFileOrder(String word1, String word2, String filename) {
+    if (filename != null) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\s+");
+                for (String word : words) {
+                    if (word.equalsIgnoreCase(word1)) {
+                        return -1;
+                    } else if (word.equalsIgnoreCase(word2)) {
+                        return 1;
+                    }
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // If filename is null or word not found, use alphabetical ordering
+    return word1.compareTo(word2);
+}
+    // till here 
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    */
+    
+    
+
+    /*
+    private static Node buildBST(Node root, String word, String filename) {
+    if (root == null) {
+        root = new Node(word, filename, 1);
+        return root;
+    }
+
+    // Compare word with the current node's word based on the order in the file
+    int compare = compareWithFileOrder(word, root.word, filename);
+    if (compare < 0) {
+        root.left = buildBST(root.left, word, filename);
+    } else if (compare > 0) {
+        root.right = buildBST(root.right, word, filename);
+    } else {
+        boolean found = false;
+        for (FileFrequency ff : root.files) {
+            if (ff.filename.equals(filename)) {
+                ff.count++;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            root.files.add(new FileFrequency(filename, 1));
+        }
+    }
+    return root;
+}
+*/
+    
+    
+   
+
+    
+    
+    
+    /*
+    
+private static int compareWithFileOrder(String word1, String word2, String filename) {
+    if (filename != null) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\s+");
+                for (String word : words) {
+                    if (word.equalsIgnoreCase(word1)) {
+                        return -1;
+                    } else if (word.equalsIgnoreCase(word2)) {
+                        return 1;
+                    }
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // If filename is null or word not found, use alphabetical ordering
+    return word1.compareTo(word2);
+}
+
+    */
+    
+    
+    /// correct one but wrong output structure///
+    
+  private static Node buildBST(Node root, String word, String filename) {
+    if (root == null) {
+        root = new Node(word, filename, 1);
+        return root;
+    }
+
+    // Compare word with the current node's word based on the order in the file
+    int compare = compareWithFileOrder(word, root.word, filename);
+    if (compare < 0) {
+        root.left = buildBST(root.left, word, filename);
+    } else if (compare > 0) {
+        root.right = buildBST(root.right, word, filename);
+    } else {
+        boolean found = false;
+        for (FileFrequency ff : root.files) {
+            if (ff.filename.equals(filename)) {
+                ff.count++;
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            root.files.add(new FileFrequency(filename, 1));
+        }
+    }
+    return root;
+}
+  
+  
+  
+  
+  
+private static Node buildBSTV2Test(Node root, String word, String filename) {
+    if (root == null) {
+        root = new Node(word, filename, 1);
+        return root;
+    }
+
+    int compare = word.trim().compareToIgnoreCase(root.word.trim());
+    if (compare < 0) {
+        root.left = buildBSTV2Test(root.left, word, filename);
+    } else if (compare > 0) {
+        root.right = buildBSTV2Test(root.right, word, filename);
+    } else {
+        root.frequency++;
+    }
+    return root;
+}
+
+
+
+
+
+private static int compareWithFileOrder(String word1, String word2, String filename) {
+    if (filename != null) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(filename));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] words = line.split("\\s+");
+                for (String word : words) {
+                    if (word.equalsIgnoreCase(word1)) {
+                        return -1;
+                    } else if (word.equalsIgnoreCase(word2)) {
+                        return 1;
+                    }
+                }
+            }
+            reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // If filename is null or word not found, use alphabetical ordering
+    return word1.compareTo(word2);
+}
+
+
+
+
+private static int compareWithFileOrderTesting(String word1, String word2, String[] filenames) {
+    if (filenames != null && filenames.length > 0) {
+        try {
+            int word1Position = -1;
+            int word2Position = -1;
+            int currentPosition = 0;
+
+            for (String filename : filenames) {
+                BufferedReader reader = new BufferedReader(new FileReader(filename));
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    String[] words = line.split("\\s+");
+                    for (String word : words) {
+                        currentPosition++;
+                        if (word.equalsIgnoreCase(word1)) {
+                            word1Position = currentPosition;
+                        } else if (word.equalsIgnoreCase(word2)) {
+                            word2Position = currentPosition;
+                        }
+                    }
+                }
+                reader.close();
+            }
+
+            if (word1Position != -1 && word2Position != -1) {
+                return Integer.compare(word1Position, word2Position);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    // If filenames are null or words not found, use alphabetical ordering
+    return word1.compareTo(word2);
+}
+
+    
+    
+    
+
+    private static void printBST(Node root) {
+        if (root != null) {
+            printBST(root.left);
+            System.out.print(root.word + ": ");
+            for (FileFrequency ff : root.files) {
+                System.out.print(ff + "-->");
+            }
+            System.out.println();
+            printBST(root.right);
+        }
+    }
+    
+    private static void printBSTTest(Node root) {
+    if (root != null) {
+        printBST(root.left);
+        System.out.println(root.word + ": " + root.frequency);
+        printBST(root.right);
+    }
+}
+
+
+
+    private static String cleanWord(String word) {
+        /*word = word.replaceAll("[^a-zA-Z]", ""); // Remove non-alphabetic characters
+        return word.toLowerCase(); // Convert to lowercase for case-insensitivity
+*/
+        
+          word = word.replaceAll("<[^>]+>|title", ""); 
+    
+    // Remove non-alphabetic characters
+    word = word.replaceAll("[^a-zA-Z]", "");
+    
+    // Convert to lowercase for case-insensitivity
+    return word.toLowerCase();
+        
+
+}
+    
+    
+    private static void printPostOrder(Node root) {
+    if (root != null) {
+        printPostOrder(root.left);
+        printPostOrder(root.right);
+        System.out.print(root.word + ": ");
+        for (FileFrequency ff : root.files) {
+            System.out.print(ff.filename + "(" + ff.count + ")");
+            if (root.files.indexOf(ff) < root.files.size() - 1) {
+                System.out.print("-->");
+            }
+        }
+        System.out.println();
+    }
+}
+    
+    
+    private static void printPreOrder(Node root) {
+    if (root != null) {
+        System.out.print(root.word + ": ");
+        for (FileFrequency ff : root.files) {
+            System.out.print(ff.filename + "(" + ff.count + ")");
+            if (root.files.indexOf(ff) < root.files.size() - 1) {
+                System.out.print("-->");
+            }
+        }
+        System.out.println();
+        printPreOrder(root.left);
+        printPreOrder(root.right);
+    }
+}
+
+    
+private static void printInOrder(Node root) {
+    if (root != null) {
+        printInOrder(root.left);
+        System.out.print(root.word + ": ");
+        for (FileFrequency ff : root.files) {
+            System.out.print(ff.filename + "(" + ff.count + ")");
+            if (root.files.indexOf(ff) < root.files.size() - 1) {
+                System.out.print("-->");
+            }
+        }
+        System.out.println();
+        printInOrder(root.right);
+    }
+}
+
+    
+    
+}
+
+---
+
+
+public class FileFrequency {
+    String filename;
+    int count;
+
+    public FileFrequency(String filename, int count) {
+        this.filename = filename;
+        this.count = count;
+    }
+
+    @Override
+    public String toString() {
+        return filename + "(" + count + ")";
+    }
+}
+
+
+
+
